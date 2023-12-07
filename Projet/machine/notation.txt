@@ -1,0 +1,9 @@
+pas de rendu mais une soutenance via discord - 10 min de demo et question + envoie des sources par mail
+echeelle des notes
+10  savoir compiler fact et fibo et ca marche 
+12 savoir compilter et faire fonctionner le compilateur
+14 idem + compiler chargeur et chargeur dans vm fonctionne
+des points en plus si stratégie intelligente de transformation de source a source 
+des points en plus si vm rapide
+(comparez vous sur fibo)
+des points en plus si modes statique et dynamique pour resolution d'adresses
