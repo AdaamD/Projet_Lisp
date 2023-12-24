@@ -155,11 +155,11 @@
 )
 
 ;; RTN : Fonction pour le retour d'une sous-routine
-(defun vm-exec-rtn (nomVM)
+(defun vm-exec-rtn (nomVM dest)
   ;; Récupération de l'adresse de retour depuis la pile
-  (let ((return-address (vm-exec-pop nomVM)))
-    (setf (get nomVM :PC) return-address))
-    )
+  (let ((return-address (vm-exec-pop nomVM dest)))
+    (setf (get nomVM :PC) return-address)))
+
 
 
 #|--------------------------------------------------------------- |#
@@ -251,14 +251,52 @@
 
 
 ;;charge code en memoire 
-(defun load-vm (nomVM code)
-  (let ((initial-pc (get nomVM :PC)))  ;; Obtenez l'adresse initiale du PC
+(defun load-program-into-vm (vm-name code)
+  (let ((pc (or (get vm-name :PC) 0)))
     (loop for inst in code do
       (progn
-        (format t "Loading instruction ~A at address ~A~%" inst (get nomVM :PC))
-        (vm-exec-set-mem nomVM (get nomVM :PC) inst)
-        (incf (get nomVM :PC))))
-    code))
+        (format t "Loading instruction ~A at address ~A~%" inst pc)
+        (vm-exec-set-mem vm-name pc inst)
+        (incf pc)))
+    (format t "Program loaded into ~A VM. Final PC: ~A~%" vm-name pc)
+    (get vm-name :state)))
+
+;;print des inst en mémoire
+(defun print-memory-until-halt (vm-name)
+  (let* ((vm (get vm-name :vm))
+         (memory (get vm-name :memory))
+         (instruction-pointer 0))
+    (loop
+      (let ((instruction (aref memory instruction-pointer)))
+        (format t "Address ~d: ~a~%" instruction-pointer instruction)
+        (when (equal instruction '(HALT))
+          (return)))
+      (setq instruction-pointer (1+ instruction-pointer)))))
+
+#|
+  Marche pas bien a revoir 
+;; Fonction pour exécuter le programme 
+(defun run-machine (machine)
+  (loop for pc from 0
+        for inst = (vm-exec-get-mem machine pc)
+        while (not (equal (car inst) 'HALT))
+        do (case (car inst)
+             (LOAD (vm-exec-load machine (second inst) (third inst)))
+             (STORE (vm-exec-store machine (second inst) (third inst)))
+             (MOVE (vm-exec-move machine (second inst) (third inst)))
+             (ADD (vm-exec-add machine (second inst) (third inst)))
+             (SUB (vm-exec-sub machine (second inst) (third inst)))
+             (MUL (vm-exec-mul machine (second inst) (third inst)))
+             (DIV (vm-exec-div machine (second inst) (third inst)))
+             (INCR (vm-exec-incr machine (second inst)))
+             (DECR (vm-exec-decr machine (second inst)))
+             (PUSH (vm-exec-push machine (second inst)))
+             (POP (vm-exec-pop machine (second inst)))
+             (t (format t "Instruction inconnue:  ~A~%" inst)))
+  finally (format t "Program halted.~%")))
+
+ |#
+
 
 
 #| MARCHE PAS 
