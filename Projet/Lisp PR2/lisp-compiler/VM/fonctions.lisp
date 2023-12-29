@@ -9,7 +9,7 @@
 
 (defun get-memoire (nom adresse)
 	(if (>= adresse (get-taille-memoire nom))
-		(error "get-memoire à l'adresse ~s hors des limites" adresse)
+		(error "get-memoire de adr ~s hors limites" adresse)
 		(if (null (aref (get nom 'memoire) adresse))
 			0
 			(aref (get nom 'memoire) adresse)
@@ -19,7 +19,7 @@
 
 (defun set-memoire (nom adresse valeur)
 	(if (>= adresse (get-taille-memoire nom))
-		(error "set-memoire à l'adresse ~s hors des limites" adresse)
+		(error "set-memoire de  adr ~s hors limites" adresse)
 		(setf (aref (get nom 'memoire) adresse) valeur)
 	)
 )
@@ -156,10 +156,10 @@
 ; DIV <src> <dest>
 (defun machine-div (nom src dest)
     (if (is-litteral src)
-        (cond   ((= (get-const nom src) 0) (error "machine-div : division par 0 impossible"))
+        (cond   ((= (get-const nom src) 0) (error "machine-div : div par 0 "))
                  (t (set-registre nom dest (/ (get-registre nom dest) (cadr src))) )    ; mode direct -> on ajoute la constante src au registre dest
         )
-        (cond   ((= (get-registre nom src) 0) (error "machine-div : division par 0 impossible"))
+        (cond   ((= (get-registre nom src) 0) (error "machine-div : div par 0 "))
                  (t (set-registre nom dest (/ (get-registre nom dest) (get-registre nom src))) ) ; mode normal
         )      
     )
@@ -183,7 +183,7 @@
 ; PUSH <src>
 (defun machine-push (nom src)
 	(if (> (get-registre nom 'SP) (get-registre nom 'maxStack))
-		(error "machine-push : depassement de pile")
+		(error "machine-push : depassementpile")
 		(progn
 			(if (is-litteral src)
 				(set-memoire nom (get-registre nom 'SP) (cadr src))
@@ -196,7 +196,7 @@
 ; POP <dest>
 (defun machine-pop (nom dest)
 	(if (<= (get-registre nom 'SP) (get-registre nom 'BP))
-		(error "machine-pop : la pile est vide")
+		(error "machine-pop :  pile  vide")
 		(progn 
 			(set-registre nom 'SP (- (get-registre nom 'SP) 1))
 			(set-registre nom dest (get-memoire nom (get-registre nom 'SP)))
@@ -218,7 +218,7 @@
 (defun machine-jmp (nom label)
 	(if (integerp label)
 		(set-registre nom 'PC label)
-		(error "machine-jmp : le label ~s n'est pas une adresse" label)
+		(error "machine-jmp :  ~s pas une adrese" label)
 	)
 )
 
@@ -329,18 +329,18 @@
 			(eql 'JPE (car instr))
 		)
 
-		(if (is-label (cadr instr))
-			(if (isSymboleSet nom (cadadr instr))
-				(cons (car instr) (list (getSymbole nom (cadadr instr)))) 
-				(progn
-					(setReferenceNR nom (cadadr instr) co)
-					instr
-				)
-			)
-			instr
-		)
-		instr
-	)
+	(if (is-label (cadr instr))
+        (if (isSymboleSet nom (cadadr instr))
+            (cons (car instr) (list (getSymbole nom (cadadr instr))))
+            (progn
+              (setReferenceNR nom (cadadr instr) co)
+              instr
+            )
+        )
+        instr
+    )
+    instr
+  )
 )
 
 

@@ -12,7 +12,7 @@
 
 ;; fonction de compilation
 (defun compilation (fileName &optional output)
-	(printem "[0%] =================================================> Début de la compilation : " fileName)
+	(printem "---- Compilation de " fileName)
 	(let ((file (open fileName)) (code '()) (bytecode '()))
 		(loop for expr = (read file nil) while expr do
 			(setf code (append code (list expr)))
@@ -26,7 +26,7 @@
                      :if-does-not-exist :create)
   			(format str (write-to-string bytecode)))
 		)
-		(printem "[100%] ===============================================> Fin compilation : " output)
-		"done."
+		(printem "---- Fin de complation : " output)
+		
 	)
 )

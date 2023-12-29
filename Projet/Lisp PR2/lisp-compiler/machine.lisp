@@ -62,6 +62,7 @@
 	)
 )
 
+;; Exécute le code chargé en mémoire ( exécuté grace a eval-instruction)
 (defun start (nom)
 	(loop while (= (get nom 'exitVM) 0) do
 		(let* ((pc (get-registre nom 'PC)) (instr (get-memoire nom pc)))
@@ -73,19 +74,18 @@
 			)
 		)	
 	)
-	(printemvm "[VM] =================================================> Le Résultat est : " (get-registre nom 'R0))
-	"done"
+	(printemvm "---- Résultat = " (get-registre nom 'R0))
+	
 )
 
+;; ouvre le fichier de code et le mets e mémoire grace a machine-chargeur
 (defun charger-machine (nom nomfichier &optional (co 100001))
-	(let ((fichier (open nomfichier)))
-		(if fichier 
-		(prog1 (machine-chargeur nom (read fichier nil) co) ; prog1 permet de retourner seulement le premier élément de la séquence
-				(close fichier))
-		)
-	)
-	"Chargement réussi"
+  (with-open-file (fichier nomfichier :direction :input)
+    (let ((instructions (read fichier)))
+      (machine-chargeur nom instructions co)))
+  "Succès de chargement"
 )
+
 
 
 (defun machine-chargeur (nom fichier &optional (co 100001))
