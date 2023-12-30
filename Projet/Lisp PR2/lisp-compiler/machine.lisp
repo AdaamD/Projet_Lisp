@@ -2,7 +2,7 @@
 
 ; création et initialisation de la machine virtuelle
 ; nom = nom de la machine virtuelle
-(defun make-machine (&optional (nom 'mv) (taille 150000))
+(defun vm-creation (&optional (nom 'VM) (taille 150000))
 
 	(setf (get nom 'memoire) (make-array taille))
 	(setf (get nom 'R0) 0) ; init Registre 0        (R0)
@@ -19,11 +19,12 @@
 	(setf (get nom 'referenceNR) (make-hash-table)) ; table references non resolus
 	(setf (get nom 'exitVM) 0)
 	(setf (get nom 'maxStack) 100000)
-    "Message : Initialisation de la machine virtuelle"
+	  (format t "Creation réussi de la VM : ~A, de taille: ~A~%" nom taille )
+
 )
 
 ; execution de l'instruction courante
-(defun eval-instruction (nom instr)
+(defun vm-eval-inst (nom instr)
 	(let ((src (cadr instr))
 		  (dest (caddr instr)))
 		(case (car instr)
@@ -63,10 +64,10 @@
 )
 
 ;; Exécute le code chargé en mémoire ( exécuté grace a eval-instruction)
-(defun start (nom)
+(defun vm-run-code (nom)
 	(loop while (= (get nom 'exitVM) 0) do
 		(let* ((pc (get-registre nom 'PC)) (instr (get-memoire nom pc)))
-			(progn (eval-instruction nom instr)
+			(progn (vm-eval-inst nom instr)
 				(if (= (get-registre nom 'PC) pc)
 					(set-registre nom 'PC (+ pc 1)) ; on incrémente de 1 le registre PC à chaque instruction lu
 					nil
@@ -79,16 +80,16 @@
 )
 
 ;; ouvre le fichier de code et le mets e mémoire grace a machine-chargeur
-(defun charger-machine (nom nomfichier &optional (co 100001))
+(defun vm-load-code (nom nomfichier &optional (co 100001))
   (with-open-file (fichier nomfichier :direction :input)
     (let ((instructions (read fichier)))
-      (machine-chargeur nom instructions co)))
+      (vm-chargeur nom instructions co)))
   "Succès de chargement"
 )
 
 
 
-(defun machine-chargeur (nom fichier &optional (co 100001))
+(defun vm-chargeur (nom fichier &optional (co 100001))
 	(loop while (not (null fichier)) do
 		(let ((instr (car fichier)))
 			(if (null instr)
