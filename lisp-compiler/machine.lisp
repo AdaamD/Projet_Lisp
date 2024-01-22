@@ -1,5 +1,8 @@
+(require "Fonctions/fonctionsVM.lisp")
+
+
 ; création et initialisation de la machine virtuelle
-; nom = nom de la machine virtuelle
+
 (defun vm-creation (&optional (nom 'VM) (taille 150000))
 
 	(setf (get nom 'memoire) (make-array taille))
