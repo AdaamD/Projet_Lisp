@@ -1,53 +1,33 @@
-# Machine virtuelle & compiltateur en Lisp
+# Machine Virtuelle & Compilateur en Lisp
 
-## Screenshots
-<p align="middle">
-  <img src="lisp-compiler/screenshots/lisp1.png" />
-  <img src="lisp-compiler/screenshots/lisp2.png" />
-  <img src="lisp-compiler/screenshots/lisp3.png" /> 
-  <img src="lisp-compiler/screenshots/lisp4.png" /> 
-</p>
+## Vue d'ensemble
+Ce projet est destiné à la création d'un compilateur et d'une machine virtuelle (VM) écrits en Lisp. Le compilateur transforme une expression Lisp en une sortie équivalente au fichier asm. Ensuite, la machine virtuelle prend ce fichier asm généré par le compilateur et l'interprète pour produire un résultat final.
 
-## Description
-L'objectif du projet est de réaliser un compilateur qui prend en entrée une expression lisp et fournit en sortie le fichier équivalent en asm. Il faut également réaliser une machine virtuelle qui va interpréter le fichier asm généré par le compilateur et interpréter le code asm pour enfin fournir un résultat.
+## Comment utiliser le Compilateur?
+Pour utiliser le compilateur, suivez les étapes ci-dessous:
 
-## Utilisation compilateur
+1. Chargez le fichier du compilateur:
+   > (load "compilateur.lisp")
 
-> (load "compilateur.lisp")
-> (compilation "Input.lisp" "nomFichierEnSortie.asm") ;; ex : (compilation "fibo.lisp" "fibo1.asm")
+2. Exécutez la fonction de compilation avec le nom du fichier d'entrée et le nom du fichier de sortie:
+   > (compilation "NomFichierEntree.lisp" "NomFichierSortie.asm") 
+   Exemple : (compilation "fibo.lisp" "fibo.asm").
 
-ou Input.lisp est un fichier contenant une expression Lisp (ex: fibo.lisp)
-et nomFichierEnSortie.asm contient le code ASM issu de cette expression
+## Comment utiliser la Machine Virtuelle?
+Voici la procédure pour utiliser la Machine Virtuelle:
 
-Le fichier ASM généré à partir du fichier LISP est présent dans le dossier /Output.
+1. Chargez le fichier de la machine virtuelle:
+   > (load "machine.lisp") 
 
+2. Créez une nouvelle instance de la machine virtuelle:
+   > (vm-creation 'mv)
 
-## Utilisation machine virtuelle
+3. Chargez le fichier asm dans la machine virtuelle:
+   > (vm-load 'mv "CheminFichier.asm")
+   Exemple : (vm-load 'mv "Output/fibo.asm")
 
-> (load "machine.lisp")
-> (make-machine 'mv)    //// (vm-creation 'mv)
+4. Exécutez le code à l'intérieur de la machine virtuelle:
+   > (vm-run-code 'mv)
 
-ou mv est le nom de la machine virtuelle     //// ( vm-load 'mv "Output/fiboTEST.asm")
-
-> (charger-machine 'mv "cheminVersLeFichierASM") ;; ex : (charger-machine 'mv "Output/fibo1.asm")
-
-pour charger le fichier ASM dans la machine virtuelle.
-
-> (start 'mv)           ////// ( vm-run-code 'mv)
-
-permet de lancer la machine virtuelle et d'obtenir le résultat.
-
-
-## Des fichiers tests ont été créé pour simplifier l'utilisation :
-
-Un fichier "test1.lisp" a été préparé. 
-Ce fichier calcul le résultat de fibo(10).
-
-Pour l'utiliser, il suffit simplement de :
-
-> (load "test1.lisp") ;; pour charger le compilateur et la vm, créer la vm, charger le fichier asm dans la vm... automatiquement
-> (start 'mv)	    ;; pour obtenir le résultat
-
-Un fichier "test2.lisp" a également été préparé.
-Ce fichier calcul le résultat de fact(6).
-
+## Fichiers de programme automatiques
+Dans le répertoire 'Auto', il existe deux fichiers, `testFACT` et `testFIBO`. Vous pouvez charger l'un de ces deux fichiers. Ils chargeront les fichiers du compilateur et de la VM, créeront une nouvelle instance de la VM et chargeront et exécuteront le fichier de test.
