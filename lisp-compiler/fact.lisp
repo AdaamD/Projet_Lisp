@@ -1,3 +1,8 @@
-(defun fact (n) (if (= n 1) 1 (* n (fact (- n 1))))) 
+(defun facto (n) 	
+	(if (= n 1 ) 	
+		1
+	(* n (facto (- n 1))) 
+	)
+ )
 
-(fact 6)
+(facto 5)
