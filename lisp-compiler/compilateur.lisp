@@ -1,4 +1,4 @@
-(require "Compilateur/all.lisp")
+(require "Compilateur_VM/all.lisp")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;   COMPILATEUR LISP : LISP -> ASM  ;;;;

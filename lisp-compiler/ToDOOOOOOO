@@ -1,3 +1,6 @@
 la vm est correcte
 le compilateur  est bon  a regarder :            comp-if /   comp-var / comp-defun / comp-expr / comp-call 
 regarder ces fonctions et comprendre 
+
+supprimer les fonctions en commentaires 
+ comp-if / comp-var /  comp expr / 

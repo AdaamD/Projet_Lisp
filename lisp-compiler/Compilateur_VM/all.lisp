@@ -26,101 +26,104 @@
 ;; Expression Conditionnelle ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;ok
 
 
 ;; Assurez-vous que la variable globale 'comp-if-i' est initialement définie
 (setq comp-if-i 0)
+;; La fonction 'generate-label' génère des labels uniques en incorporant un compteur dans leur nom.
+;; Le paramètre 'base' spécifie la base du nom du label.
+(defun generate-label (base)
+    ;; Nous incrémentons le compteur global
+    (incf comp-if-i)
+    ;; Nous retournons un nouveau label en concatenant la base du nom et le compteur
+    (intern (concatenate 'string base (write-to-string comp-if-i))))
 
-;;; La fonction 'generate-label' génère des labels uniques en incorporant un compteur dans leur nom.
-;;; Le paramètre 'base' spécifie la base du nom du label.
-;(defun generate-label (base)
-;    ;; Nous incrémentons le compteur global
-;    (incf comp-if-i)
-;    ;; Nous retournons un nouveau label en concatenant la base du nom et le compteur
-;    (intern (concatenate 'string base (write-to-string comp-if-i))))
-;
-;;; La fonction 'compile-section' compile une section de code, puis ajoute une instruction de saut vers le label spécifié.
-;(defun compile-section (code env label)
-;    (append 
-;        ;; Nous compilons le code de la section
-;        (comp-expr code env)
-;        ;; Nous ajoutons une instruction de saut vers le label
-;        `((JMP (LABEL ,label)))
-;    ))
-;
-;;; La fonction 'comp-if' compile une instruction conditionnelle 'if' dans un langage hypothétique de bas niveau
-;(defun comp-if (code &optional env)
-;    ;; Nous générons des labels uniques pour les sections 'puis' (then), 'autrement' (else) et 'fini' (end) de l'instruction 'if'
-;    (let ((then-label (generate-label "THEN"))
-;          (else-label (generate-label "ELSE"))
-;          (end-label (generate-label "ENDIF")))
-;        (append 
-;            ;; Nous compilons l'expression conditionnelle de l'instruction 'if'
-;            (comp-expr (second code) env)
-;            ;; Nous comparons le résultat de l'expression conditionnelle avec zéro
-;            `((CMP (LIT 0) R0))
-;            ;; Si l'expression conditionnelle évalue à faux (0), nous sautons à la section 'autrement' (else)
-;            `((JEQ (LABEL ,else-label)))
-;            ;; Nous compilons la section 'puis' (then) et ajoutons un saut vers la fin de l'instruction 'if'
-;            (compile-section (third code) env end-label)
-;            ;; Nous marquons le début de la section 'autrement' (else)
-;            `((LABEL ,else-label))
-;            ;; Nous compilons la section 'autrement' (else) et ajoutons un saut vers la fin de l'instruction 'if'
-;            (compile-section (fourth code) env end-label)
-;            ;; Nous marquons la fin de l'instruction 'if'
-;            `((LABEL ,end-label))
-;        )
-;    )
-;)
+;; La fonction 'compile-section' compile une section de code, puis ajoute une instruction de saut vers le label spécifié.
+(defun compile-section (code env label)
+    (append 
+        ;; Nous compilons le code de la section
+        (comp-expr code env)
+        ;; Nous ajoutons une instruction de saut vers le label
+        `((JMP (LABEL ,label)))
+    ))
 
-(defun comp-if (code  &optional env)
-	(setf comp-if-i (+ comp-if-i 1))
-	(let ((sinon (intern (string-concat (string "SINON") (write-to-string comp-if-i))))
-		 (finSi (intern (string-concat (string "FINSI") (write-to-string comp-if-i)))))
-		(append 
-			(comp-expr (cadr code) env);;compile le if
-			`((CMP (LIT 0) R0)) ;; compare resulat de cond avec zero
-			`((JEQ (LABEL ,sinon))) ;; saut au label 0 si cond =0
-			(comp-expr (caddr code) env) ;; compile la parti si
-			`((JMP (LABEL ,finSi))) ;; jump vers finsi, pour pas faire le else 
-			`((LABEL ,sinon)) ;; debut du else 
-			(comp-expr (cadddr code) env) ;; compile le else 
-			`((LABEL ,finSi)) ;; marque fin de cond 
-		)
-	)
+;; La fonction 'comp-if' compile une instruction conditionnelle 'if' dans un langage hypothétique de bas niveau
+(defun comp-if (code &optional env)
+    ;; Nous générons des labels uniques pour les sections 'puis' (then), 'autrement' (else) et 'fini' (end) de l'instruction 'if'
+    (let ((then-label (generate-label "THEN"))
+          (else-label (generate-label "ELSE"))
+          (end-label (generate-label "ENDIF")))
+        (append 
+            ;; Nous compilons l'expression conditionnelle de l'instruction 'if'
+            (comp-expr (second code) env)
+            ;; Nous comparons le résultat de l'expression conditionnelle avec zéro
+            `((CMP (LIT 0) R0))
+            ;; Si l'expression conditionnelle évalue à faux (0), nous sautons à la section 'autrement' (else)
+            `((JEQ (LABEL ,else-label)))
+            ;; Nous compilons la section 'puis' (then) et ajoutons un saut vers la fin de l'instruction 'if'
+            (compile-section (third code) env end-label)
+            ;; Nous marquons le début de la section 'autrement' (else)
+            `((LABEL ,else-label))
+            ;; Nous compilons la section 'autrement' (else) et ajoutons un saut vers la fin de l'instruction 'if'
+            (compile-section (fourth code) env end-label)
+            ;; Nous marquons la fin de l'instruction 'if'
+            `((LABEL ,end-label))
+        )
+    )
 )
+
+; a supprimé cele d'en bas
+
+
+;(defun comp-if (code  &optional env)
+;	(setf comp-if-i (+ comp-if-i 1))
+;	(let ((sinon (intern (string-concat (string "SINON") (write-to-string comp-if-i))))
+;		 (finSi (intern (string-concat (string "FINSI") (write-to-string comp-if-i)))))
+;		(append 
+;			(comp-expr (cadr code) env);;compile le if
+;			`((CMP (LIT 0) R0)) ;; compare resulat de cond avec zero
+;			`((JEQ (LABEL ,sinon))) ;; saut au label 0 si cond =0
+;			(comp-expr (caddr code) env) ;; compile la parti si
+;			`((JMP (LABEL ,finSi))) ;; jump vers finsi, pour pas faire le else 
+;			`((LABEL ,sinon)) ;; debut du else 
+;			(comp-expr (cadddr code) env) ;; compile le else 
+;			`((LABEL ,finSi)) ;; marque fin de cond 
+;		)
+;	)
+;)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Expression Déclarative ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;
-;(defun comp-var (var  &optional env)
-;    ;; Crée une liaison pour le résultat de la recherche de var dans l'environnement à lib
-;	(let ((lib (assoc var env))) 
-;	    ;; Si lib n'est pas nil, générez du code pour obtenir la valeur à l'offset (cdr lib) à partir du pointeur de cadre
-;		(if lib
-;			`( (MOVE FP R0)                ; Copie le pointeur de cadre à R0
-;			   (SUB (LIT ,(cdr lib)) R0)   ; Soustrait l'offset pour obtenir la vraie adresse
-;			   (LOAD R0 R0) )              ; Charge la valeur stockée à l'adresse dans R0
-;		    ;; sinon il génère simplement du code pour déplacer la valeur var à R0
-;			`((MOVE (VAR ,var) RO)) 
-;		)
-;	)
-;)
 
 (defun comp-var (var  &optional env)
-	(let ((lib (assoc var env)))
+    ;; Crée une liaison pour le résultat de la recherche de var dans l'environnement à lib
+	(let ((lib (assoc var env))) 
+	    ;; Si lib n'est pas nil, générez du code pour obtenir la valeur à l'offset (cdr lib) à partir du pointeur de cadre
 		(if lib
-			(append
-				`((MOVE FP R0))
-				`((SUB (LIT ,(cdr lib)) R0))
-				`((LOAD R0 R0))
-			)
-			`((MOVE (VAR ,var) RO))
+			`( (MOVE FP R0)                ; Copie le pointeur de cadre à R0
+			   (SUB (LIT ,(cdr lib)) R0)   ; Soustrait l'offset pour obtenir la vraie adresse
+			   (LOAD R0 R0) )              ; Charge la valeur stockée à l'adresse dans R0
+		    ;; sinon il génère simplement du code pour déplacer la valeur var à R0
+			`((MOVE (VAR ,var) RO)) 
 		)
 	)
 )
+
+;(defun comp-var (var  &optional env)
+;	(let ((lib (assoc var env)))
+;		(if lib
+;			(append
+;				`((MOVE FP R0))
+;				`((SUB (LIT ,(cdr lib)) R0))
+;				`((LOAD R0 R0))
+;			)
+;			`((MOVE (VAR ,var) RO))
+;		)
+;	)
+;)
 
 
 ;
@@ -187,38 +190,38 @@
 ;
 ;
 ;
-;(defun comp-expr (expr &optional env)
-;  (if (consp expr)  ; Si "expr" est une expression composée,
-;    (let ((car-expr (car expr)))  ; Récupérer le premier item de la liste "expr"
-;        (cond
-;            ((eq 'if car-expr) (comp-if expr env))  ; Si c'est une instruction `if`, compiler avec `comp-if`
-;            ((eq 'defun car-expr) (comp-defun expr env))  ; Si c'est une définition de fonction, compiler avec `comp-defun`
-;            ((eq 'halt car-expr) `((HALT)))  ; Si c'est une commande `halt`, retourner telle quelle
-;            ((eq 'nop car-expr) `((NOP)))  ; Si c'est une commande `nop`, retourner telle quelle
-;            (t (comp-call expr env))))  ; Sinon, compiler comme un appel de fonction
-;    (if (constantp expr)  ; Sinon, si "expr" est une constante,
-;        (comp-cons expr)  ; Compiler la constante,
-;        (if (symbolp expr)  ; Sinon, si "expr" est un symbole (nom de variable),
-;            (comp-var expr env)  ; Compiler la référence de variable
-;            (error "Expression ~s mal formée" expr)))))  ; Sinon, l'expression n'est pas correctement formée, lever une erreur
-;
-
 (defun comp-expr (expr &optional env)
-  (cond 
-  	((consp expr)
-  		(case (car expr)
-  			('if (comp-if expr env))
-  			('defun (comp-defun expr env))
-			('halt `((HALT)))
-			('nop `((NOP)))
-  			(t (comp-call expr env))))
-  	
-  	((constantp expr) (comp-cons expr))
-  	
-  	((symbolp expr) (comp-var expr env))
-  	
-  	(t (error "Expression ~s mal formée" expr)))
-)
+  (if (consp expr)  ; Si "expr" est une expression composée,
+    (let ((car-expr (car expr)))  ; Récupérer le premier item de la liste "expr"
+        (cond
+            ((eq 'if car-expr) (comp-if expr env))  ; Si c'est une instruction `if`, compiler avec `comp-if`
+            ((eq 'defun car-expr) (comp-defun expr env))  ; Si c'est une définition de fonction, compiler avec `comp-defun`
+            ((eq 'halt car-expr) `((HALT)))  ; Si c'est une commande `halt`, retourner telle quelle
+            ((eq 'nop car-expr) `((NOP)))  ; Si c'est une commande `nop`, retourner telle quelle
+            (t (comp-call expr env))))  ; Sinon, compiler comme un appel de fonction
+    (if (constantp expr)  ; Sinon, si "expr" est une constante,
+        (comp-cons expr)  ; Compiler la constante,
+        (if (symbolp expr)  ; Sinon, si "expr" est un symbole (nom de variable),
+            (comp-var expr env)  ; Compiler la référence de variable
+            (error "Expression ~s mal formée" expr)))))  ; Sinon, l'expression n'est pas correctement formée, lever une erreur
+
+
+;(defun comp-expr (expr &optional env)
+;  (cond 
+;  	((consp expr)
+;  		(case (car expr)
+;  			('if (comp-if expr env))
+;  			('defun (comp-defun expr env))
+;			('halt `((HALT)))
+;			('nop `((NOP)))
+;  			(t (comp-call expr env))))
+;  	
+;  	((constantp expr) (comp-cons expr))
+;  	
+;  	((symbolp expr) (comp-var expr env))
+;  	
+;  	(t (error "Expression ~s mal formée" expr)))
+;)
 
 
 (defun comp-list (vlist)
