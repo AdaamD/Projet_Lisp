@@ -65,9 +65,13 @@
 
 ; exécute le code chargé en mémoire (exécuté grâce à vm-exec-inst)
 (defun vm-run-code (nom)
+	;; Boucle tant que la valeur attribuée à 'exitVM' de 'nom' est 0
 	(loop while (= (get nom 'exitVM) 0) do
+		;; Définit les variables locales pc et instr
 		(let* ((pc (get-registre nom 'PC)) (instr (get-memoire nom pc)))
+			;; Appelle la fonction vm-exec-inst avec 'nom' et 'instr' en paramètres
 			(progn (vm-exec-inst nom instr)
+				;; Si le registre PC n'a pas changé, on incrémente la valeur de pc de 1
 				(if (= (get-registre nom 'PC) pc)
 					(set-registre nom 'PC (+ pc 1)) ; on incrémente de 1 le registre PC à chaque instruction lue
 					nil
@@ -75,6 +79,7 @@
 			)
 		)	
 	)
+	;; Imprime le message "---- Résultat = " suivi de la valeur dans le registre 'R0' de 'nom'
 	(printemvm "---- Résultat = " (get-registre nom 'R0))
 )
 
@@ -87,21 +92,30 @@
 )
 
 (defun vm-load-code (nom instructions &optional (co 100001))
-	(loop while (not (null instructions)) do
-		(let ((instr (car instructions)))
-			(if (null instr)
-				nil
-				(if (eql 'LABEL (car instr))
-					(vm-exec-charger-symb nom (cadr instr) co)
-					(progn
-						(set-memoire nom co (vm-exec-resoudre-symb nom instr co))
-						(setf co (+ co 1))
-					)
-				)
-			)
-		)
-		(setf instructions (cdr instructions))
-	)
+    ;; Boucle while pour parcourir la liste d'instructions tant qu'elle n'est pas vide.
+    (loop while (not (null instructions)) do
+        ;; Définit la variable locale instr comme étant la première instruction de la liste.
+        (let ((instr (car instructions)))
+            ;; Si instr est null, ne fait rien.
+            (if (null instr)
+                nil
+                ;; Si le premier élément de l'instruction est 'LABEL',
+                (if (eql 'LABEL (car instr))
+                    ;; Exécute la fonction vm-exec-charger-symb avec 'nom', le deuxième élément de l'instruction et 'co' en paramètres.
+                    (vm-exec-charger-symb nom (cadr instr) co)
+                    ;; Sinon,
+                    (progn
+                        ;; Met la valeur renvoyée par vm-exec-resoudre-symb pour 'nom', 'instr' et 'co' à l'adresse 'co' dans la mémoire de la machine virtuelle 'nom'.
+                        (set-memoire nom co (vm-exec-resoudre-symb nom instr co))
+                        ;; Incrémente 'co' de 1.
+                        (setf co (+ co 1))
+                    )
+                )
+            )
+        )
+        ;; Met à jour la liste d'instructions pour qu'elle soit la liste d'instructions actuelle sans le premier élément.
+        (setf instructions (cdr instructions))
+    )
 )
 
 (defun printemvm (&rest args)
