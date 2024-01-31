@@ -28,7 +28,6 @@
 
 
 
-;; Assurez-vous que la variable globale 'comp-if-i' est initialement définie
 (setq comp-if-i 0)
 
 ;; La fonction 'generate-label' génère des labels uniques en incorporant un compteur dans leur nom.
@@ -61,9 +60,9 @@
             (comp-expr (second code) env)
             ;; Nous comparons le résultat de l'expression conditionnelle avec zéro
             `((CMP (LIT 0) R0))
-            ;; Si l'expression conditionnelle évalue à faux (0), nous sautons à la section 'autrement' (else)
+            ;; Si l'expression conditionnelle évalue à faux (0), nous sautons à la section  (else)
             `((JEQ (LABEL ,else-label)))
-            ;; Nous compilons la section 'puis' (then) et ajoutons un saut vers la fin de l'instruction 'if'
+            ;; Nous compilons la section (then) et ajoutons un saut vers la fin de l'instruction 'if'
             (compile-section (third code) env end-label)
             ;; Nous marquons le début de la section 'autrement' (else)
             `((LABEL ,else-label))
@@ -174,6 +173,7 @@
 
 
 (defun comp-cons (cons)
+    ;; charge la constate cons dans R0, (LIT,cons) est une manière de specifier de prendre la valeur cons comme litéral
 	`((MOVE (LIT ,cons) R0))
 )
 

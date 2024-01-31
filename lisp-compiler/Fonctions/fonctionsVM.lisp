@@ -159,8 +159,11 @@
     )
 )
 
-; INCR <dest>
+; Incremente la valeur du registre 'dest' dans la machine virtuelle 'nom' par 1
 (defun vm-exec-incr (nom dest)
+  ;; Récupère la valeur actuelle du registre 'dest'
+  ;; Incrémente cette valeur de 1
+  ;; Met à jour la valeur du registre 'dest' avec la nouvelle valeur
   (set-registre nom dest (+ (get-registre nom dest) 1)))
 
 ; DECR <dest>
@@ -210,21 +213,21 @@
 
 ;; JMP <label>
 (defun vm-exec-jmp (nom label)
-  (if (integerp label)
-      (set-registre nom 'PC label)
+  (if (integerp label) ;; verifie si label est un entier 
+      (set-registre nom 'PC label) 
       (error "vm-exec-jmp : ~s n'est pas une adresse" label)))
 
 ;; JSR <label>
 (defun vm-exec-jsr (nom label)
-  (set-memoire nom (get-registre nom 'SP) (+ (get-registre nom 'PC) 1))
-	(set-registre nom 'SP (+ (get-registre nom 'SP) 1))
-  	(vm-exec-jmp nom label)
+  (set-memoire nom (get-registre nom 'SP) (+ (get-registre nom 'PC) 1)) ;;Enregistre l'adresse de l'instruction suivante à la position actuelle du pointeur de pile ('SP').
+	(set-registre nom 'SP (+ (get-registre nom 'SP) 1)) ;;Incrémente la valeur de 'SP' pour réserver l'espace pour la prochaine valeur qui sera empilée.
+  	(vm-exec-jmp nom label) ;;Effectue le saut vers label
   )
 
 ;; RTN
 (defun vm-exec-rtn (nom)
-	(set-registre nom 'SP (- (get-registre nom 'SP) 1))
-	(vm-exec-jmp  nom (get-memoire nom (get-registre nom 'SP)))
+	(set-registre nom 'SP (- (get-registre nom 'SP) 1)) ;; Decremente SP de 1, ce qui retire le dernier élément ajouté a la pile
+	(vm-exec-jmp  nom (get-memoire nom (get-registre nom 'SP))) ;;Saut vers l'adresse au sommet de la pile
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -236,18 +239,19 @@
          (dest-content (get-registre nom dest)))
 
     (cond
-      ((eql src-content dest-content)
-       (set-registre nom 'FEQ 1)
+      ((eql src-content dest-content) ;; Si Src et Dest sont égaux 
+       (set-registre nom 'FEQ 1)      ;; On met FEQ à 1 et le reste à 0 
        (set-registre nom 'FGT 0)
        (set-registre nom 'FLT 0))
-      ((< src-content dest-content)
+      ((< src-content dest-content) ;; Si Src < Dest 
        (set-registre nom 'FEQ 0)
        (set-registre nom 'FGT 0)
-       (set-registre nom 'FLT 1))
-      (t
-       (set-registre nom 'FEQ 0)
-       (set-registre nom 'FGT 1)
-       (set-registre nom 'FLT 0)))))
+       (set-registre nom 'FLT 1))   ;; On met FLT à 1 et le reste à 0
+      (t                            ;; si Src => Dest 
+       (set-registre nom 'FEQ 0)    
+       (set-registre nom 'FGT 1)    ;;On met FGT à 1 le reste à 0 
+       (set-registre nom 'FLT 0))))
+)
 
 
 
@@ -293,20 +297,21 @@
 
 ; CONS
 (defun vm-exec-cons (nom src dest)
-  (set-registre nom dest (cons (get-registre nom src) (get-registre nom dest))))
+  (set-registre nom dest (cons (get-registre nom src) (get-registre nom dest)))) ;; construit une nouvelle liste à partir des valeurs des registres 'src' et 'dest'.
 
 ; CAR
-(defun vm-exec-car (nom arg)
+(defun vm-exec-car (nom arg) ;;remplace la liste stockée dans le registre spécifié par son premier élément.
   (set-registre nom arg (car (get-registre nom arg))))
 
 ; CDR
-(defun vm-exec-cdr (nom arg)
+(defun vm-exec-cdr (nom arg) ;;remplace la liste stockée dans le registre spécifié par la liste sauf son premier élément.
   (set-registre nom arg (cdr (get-registre nom arg))))
 
 
 
 
 (defun vm-exec-resoudre-symb (nom instr co)
+  ;; Vérifie si l'instruction (instr) est une instruction de saut
   (if (or (eql 'JMP (car instr))
           (eql 'JSR (car instr))
           (eql 'JPG (car instr))
@@ -314,16 +319,28 @@
           (eql 'JPP (car instr))
           (eql 'JGE (car instr))
           (eql 'JPE (car instr)))
+
+      ;; Si oui, alors vérifie si le deuxième élément de l'instruction est un label
       (if (is-label (cadr instr))
+
+          ;; S'il est un label, vérifie si le label est déjà défini dans l'environnement
           (if (isSymboleSet nom (cadadr instr))
+
+              ;; Si le label est défini, remplace le label par sa valeur correspondante dans l'environnement
               (cons (car instr) (list (getSymbole nom (cadadr instr))))
+
+              ;; Sinon, ajoute le label à la liste de références non résolues et retourne l'instruction telle quelle
               (progn
                 (setReferenceNR nom (cadadr instr) co)
                 instr
                 )
               )
+
+          ;; Si le deuxième élément de l'instruction n'est pas un label, retourne l'instruction telle quelle
           instr
           )
+
+      ;; Si l'instruction n'est pas une instruction de saut, retourne l'instruction telle quelle
       instr
     )
   )
@@ -331,13 +348,20 @@
 
 
 (defun vm-exec-charger-symb (nom symb co)
+  ;; Vérifie si le symbole est déjà défini dans l'environnement
   (if (isSymboleSet nom symb)
+      ;; S'il est déjà défini, lance une erreur
       (error "vm-exec-charger-symb : le symbole existe déjà")
+      
+      ;; Si le symbole n'est pas défini
       (progn
+        ;; Définit le symbole dans l'environnement à la position courante (co)
         (setSymbole nom symb co)
+
+        ;; Résout toutes les références non résolues pour ce symbole
         (vm-exec-resoudre-refNR nom symb)
         )
-      )
+   )
   )
 
 
