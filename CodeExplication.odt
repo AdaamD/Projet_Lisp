@@ -1,0 +1,105 @@
+vm-exec-move : 
+La fonction vm-exec-move est une fonction en Lisp qui déplace des valeurs entre deux registres ou entre un registre et une valeur littérale.
+La logique détaillée est la suivante:
+    Si la source (src) est une valeur littérale, déterminée par la fonction is-litteral, alors la valeur littérale (la deuxième valeur de la liste src obtenue via cadr) est déplacée (ou copiée) dans le registre de destination via la fonction set-registre.
+    Si la source n'est pas une valeur littérale, alors on suppose qu'il s'agit d'un registre. La valeur de ce dernier est obtenue par la fonction get-registre et mise dans le registre de destination.
+-----
+La vérification pour déterminer si src est un littéral est nécessaire pour comprendre comment traiter src dans le calcul. Si src est un littéral,
+ sa valeur propre est utilisée directement. 
+ Si src n'est pas un littéral, cela signifie qu'il est un identifiant de registre et qu'il faut récupérer la valeur stockée dans ce registre pour l'évaluation.
+ Cela assure que l'opération est effectuée correctement selon que src représente une valeur fixe ou une valeur stockée dans un registre.
+
+ ------
+ vm-exec-push :
+prend une machine virtuelle (nom) et une source (src) comme arguments. 
+Elle pousse la valeur de src (soit une valeur littérale, soit une valeur de registre) sur la pile de la machine virtuelle. 
+Si la pile est pleine, elle déclenche une erreur.
+
+----
+vm-exec-jmp : 
+Si le paramètre pris comme label est un entier, la fonction met à jour le compteur de programme ('PC') avec la valeur de ce label. 
+Cela fait 'sauter' l'exécution du code à l'adresse de l'instruction correspondant à cette valeur label dans le code machine.
+----
+vm-exec-rtn:
+simuler l'opération de "retour" dans une machine virtuelle. 
+Elle fait deux choses : réduire la pile pour déplacer le pointeur vers le dernier élément ajouté (qui est une adresse) 
+et ensuite effectuer un saut vers cette adresse. 
+Effectivement, cela permet de reprendre l'exécution du code à l'endroit exact où une sous-routine précédente avait été interrompue, 
+ce qui est le comportement attendu d'une instruction de "retour".
+---
+vm-exec-resoudre-refNR : 
+    utilise la fonction de haut niveau map pour itérer sur une liste de références non résolues renvoyée par getReferenceNR nom symb. Pour chaque adresse mémoire  , 
+    appelée co dans cette fonction lambda, elle fait le processus suivant :
+
+    (get-memoire nom co) : obtient l'instruction actuelle à l'adresse mémoire co dans l'environnement nom.
+
+    (car (get-memoire nom co)) : utilise la fonction car pour obtenir le premier élément de l'instruction actuelle.
+
+    (getSymbole nom symb) : récupère la valeur actuelle du symbole symb dans l'environnement nom.
+
+`( , (car (get-memoire nom co)) , (getSymbole nom symb))
+: crée une instruction où le premier élément est le même que l'instruction originale, et le deuxième élément est la valeur actuelle du symbole symb.
+
+(set-memoire nom co ...) : met à jour l'instruction à l'adresse mémoire co avec la nouvelle instruction créée au-dessus.
+-----
+
+#####################
+#### COMPILATEUR   ##
+#####################
+
+comp-defun :
+La fonction comp-defun est un compilateur pour une déclaration de fonction en Lisp, produisant des instructions pour un langage de programmation basé sur une pile.
+
+Elle initialise la position dans la pile à 0.
+Elle itère sur chaque paramètre de la fonction Lisp: pour chaque paramètre, elle augmente la position dans la pile et ajoute le paramètre à l'environnement avec sa position.
+Puis elle génère une série d'instructions: un saut vers la fin de la fonction, une étiquette au début de la fonction, la compilation de l'expression de la fonction, des mouvements et ajustements de la pile et de la pile de cadres, un retour, et une étiquette à la fin de la fonction.
+L'objectif est de préparer chaque fonction Lisp pour qu'elle soit exécutée efficacement dans un environnement de langage à pile, où l'opération principale est de pousser et de pop des éléments depuis le sommet de la pile.
+
+----
+comp-call : génère une liste d'instructions pour un appel de fonction
+    Compile chaque argument en expression et le pousse sur la pile.
+    Sauvegarde l'ancien pointeur de pile de cadres.
+    Met à jour le pointeur de pile de cadres pour pointer vers la position actuelle de la pile.
+    Pousse le nombre d'arguments sur la pile.
+    Calcule et pousse la nouvelle position de la pile.
+    Pousse l'ancien pointeur de pile de cadres sur la pile.
+    Compile l'appel de fonction.
+    Restaure les pointeurs de pile de cadres et de pile à leur état initial.
+    Ces instructions respectent les conventions d'appel standard pour les fonctions en informatique, garantissant que la pile est correctement gérée avant et après chaque appel de fonction
+
+EN GROS !!
+pour comp-call et comp-primitiv-call 
+    On a une routine courante en programmation dite "de bas niveau", notamment dans la gestion des "stack frames" en assembler.
+    On l'utilise souvent pour la gestion de l'appel de fonctions
+
+
+    -----------------------------------------------------------
+
+    Les fonctions que vous utilisez concerne principalement deux aspects: l'affichage et la compilation.
+
+Dans la section d'affichage:
+
+La fonction getline affiche le numéro de la ligne avec sa valeur pour chaque élément d'une liste.
+Cette fonction est utilisée par cout pour afficher le contenu d'une liste.
+printem est une autre fonction d'affichage qui affiche une liste d'arguments séparés par des espaces.
+Dans la section d'expressions conditionnelles:
+
+generate-label génère des étiquettes uniques pour des instructions spécifiques.
+compile-section compile une section de code et ajoute une instruction de saut vers une certaine étiquette.
+comp-if compile une instruction conditionnelle 'if' dans un langage hypothétique de bas niveau.
+Dans la section d'expressions déclaratives:
+
+comp-var génère du code pour obtenir la valeur d'une variable à partir de l'environnement.
+comp-defun compile une déclaration de fonction en Lisp dans un langage à pile.
+Pour compiler les expressions:
+
+comp-expr détermine le type de l'expression (constante, symbole, 'if', 'defun', etc.) et appelle la fonction appropriée pour la compiler. Il utilise comp-var, comp-cons, comp-if, et comp-defun.
+comp-list compile une liste d'expressions.
+Pour les littéraux:
+
+comp-cons charge un littéral dans un registre.
+Pour les procédures:
+
+comp-call compile un appel de fonction, sauvegardant et restaurant le pointeur de la pile de cadres et le pointeur de la pile.
+comp-primitive-call génère le code de bas niveau pour les appels de fonctions arithmétiques et de comparaisons.
+En conclusion, ces fonctions coopèrent pour compiler un code écrit en Lisp vers un langage de bas niveau hypothétique.
